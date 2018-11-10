@@ -1,19 +1,22 @@
-#include <Wire.h>
-#include <Adafruit_Sensor.h>
-#include "SensorData.h"
-#include "PMS5003Frame.h"
-#include "BME280Proxy.h"
-#include "PMS5003Proxy.h"
-#include "RFM69TXProxy.h"
-#include "FeatherOLEDProxy.h"
+#include <Arduino.h>
 
+#include "workshop-climate-lib.h" // unsure exactly why this has to be here for this to compile. without it, the sub-directory .h files aren't found. Probably has something to do with not finding the library if nothing is loaded from the root of the src folder.
+#include "Sensors\SensorData.h"
+#include "Sensors\PMS5003Frame.h"
+#include "Sensors\BME280Proxy.h"
+#include "Sensors\PMS5003Proxy.h"
+#include "TX\RFM69TXProxy.h"
+#include "Display\FeatherOLEDProxy.h"
+
+using namespace Display;
+using namespace Sensors;
 using namespace Sensors::BME280;
 using namespace Sensors::PMS5003;
 using namespace TX;
-using namespace Display;
 
 const unsigned long sampleFrequency = 60000; // ms (once per minute)
 bool isFirstLoop = true;
+SensorData data;
 
 BME280Proxy climateProxy(BME280Proxy::F);
 PMS5003Proxy particleProxy;
@@ -22,6 +25,8 @@ FeatherOLEDProxy displayProxy;
 
 void setup() {
     Serial.begin(115200);
+
+    //while (!Serial); // MAKE SURE TO REMOVE THIS!!!
 
     displayProxy.Initialize();
     climateProxy.Initialize();
@@ -32,7 +37,6 @@ void setup() {
 }
 
 void loop() {
-    SensorData data;
     climateProxy.ReadSensor(&data);
     particleProxy.ReadSensor(&data);
 
@@ -41,14 +45,9 @@ void loop() {
     }
 
     displayProxy.PrintSensors(data);
-    data.PrintDebug();
-
-    Serial.println("");
-
+    
     TXResult result = transmissionProxy.Transmit(data);
-    //displayProxy.PrintRFM69Update(&result);
-
-    Serial.println("");
+    
     isFirstLoop = false;
     delay(sampleFrequency);
 }
