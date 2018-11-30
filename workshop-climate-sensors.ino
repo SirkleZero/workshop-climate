@@ -18,7 +18,7 @@ const unsigned long sampleFrequency = 60000; // ms (once per minute)
 bool isFirstLoop = true;
 SensorData data;
 
-BME280Proxy climateProxy(BME280Proxy::F);
+BME280Proxy climateProxy(TemperatureUnit::F);
 PMS5003Proxy particleProxy;
 RFM69TXProxy transmissionProxy;
 FeatherOLEDProxy displayProxy;
