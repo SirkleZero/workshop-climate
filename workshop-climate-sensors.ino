@@ -17,7 +17,7 @@ const unsigned long sampleFrequency = 60000; // ms (once per minute)
 bool isFirstLoop = true;
 SensorData data;
 
-SensorManager manager(AvailableSensors::All);
+SensorManager manager(AvailableSensors::All, TemperatureUnit::F);
 
 BME280Proxy climateProxy(TemperatureUnit::F);
 PMS5003Proxy particleProxy;
