@@ -13,12 +13,12 @@ using namespace Display;
 using namespace Sensors;
 using namespace TX;
 
-const unsigned long sampleFrequency = 60000; // ms (once per minute)
+static const unsigned long SampleFrequency = 20000; // every 20 seconds
 bool isFirstLoop = true;
 bool systemRunnable = true;
 SensorData data;
 
-SensorManager manager(AvailableSensors::All, TemperatureUnit::F);
+SensorManager manager(AvailableSensors::All, TemperatureUnit::F, SampleFrequency);
 RFM69TXProxy transmissionProxy;
 FeatherOLEDProxy displayProxy;
 
@@ -41,20 +41,20 @@ void setup() {
 void loop() {
 	if (systemRunnable)
 	{
-		manager.ReadSensors(&data);
-
-		if (isFirstLoop)
+		if (manager.ReadSensors(&data))
 		{
-			displayProxy.Clear();
+			if (isFirstLoop)
+			{
+				displayProxy.Clear();
+			}
+
+			displayProxy.PrintSensors(data);
+
+			TXResult result = transmissionProxy.Transmit(data);
+			displayProxy.PrintTransmissionInfo(result);
+
+			isFirstLoop = false;
 		}
-
-		displayProxy.PrintSensors(data);
-
-		TXResult result = transmissionProxy.Transmit(data);
-		displayProxy.PrintTransmissionInfo(result);
-
-		isFirstLoop = false;
-		delay(sampleFrequency);
 	}
 	else
 	{
