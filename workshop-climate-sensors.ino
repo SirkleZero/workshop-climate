@@ -15,12 +15,10 @@ using namespace TX;
 
 const unsigned long sampleFrequency = 60000; // ms (once per minute)
 bool isFirstLoop = true;
+bool systemRunnable = true;
 SensorData data;
 
 SensorManager manager(AvailableSensors::All, TemperatureUnit::F);
-
-BME280Proxy climateProxy(TemperatureUnit::F);
-PMS5003Proxy particleProxy;
 RFM69TXProxy transmissionProxy;
 FeatherOLEDProxy displayProxy;
 
@@ -29,26 +27,40 @@ void setup() {
 
     //while (!Serial); // MAKE SURE TO REMOVE THIS!!!
 
-    displayProxy.Initialize();
-    climateProxy.Initialize();
-    particleProxy.Initialize();
-    transmissionProxy.Initialize();
+	if (displayProxy.Initialize().IsSuccessful)
+	{
+		displayProxy.PrintWaiting();
 
-    displayProxy.PrintWaiting();
+		if (manager.Initialize().IsSuccessful)
+		{
+			systemRunnable = transmissionProxy.Initialize().IsSuccessful;
+		}
+	}
 }
 
 void loop() {
-    climateProxy.ReadSensor(&data);
-    particleProxy.ReadSensor(&data);
+	if (systemRunnable)
+	{
+		manager.ReadSensors(&data);
 
-    if(isFirstLoop) {
-        displayProxy.Clear();
-    }
+		if (isFirstLoop)
+		{
+			displayProxy.Clear();
+		}
 
-    displayProxy.PrintSensors(data);
-    
-    TXResult result = transmissionProxy.Transmit(data);
-    
-    isFirstLoop = false;
-    delay(sampleFrequency);
+		displayProxy.PrintSensors(data);
+
+		TXResult result = transmissionProxy.Transmit(data);
+		displayProxy.PrintTransmissionInfo(result);
+
+		isFirstLoop = false;
+		delay(sampleFrequency);
+	}
+	else
+	{
+		// the needed components of the system are not present or working, show a message
+		const __FlashStringHelper *msg = F("One or more components failed to initialize.");
+		Serial.println(msg);
+		displayProxy.PrintError(msg);
+	}
 }
