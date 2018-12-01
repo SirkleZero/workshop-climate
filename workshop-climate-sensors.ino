@@ -31,9 +31,14 @@ void setup() {
 	{
 		displayProxy.PrintWaiting();
 
-		if (sensorManager.Initialize().IsSuccessful)
+		InitializationResult smr = sensorManager.Initialize();
+		if (smr.IsSuccessful)
 		{
 			systemRunnable = transmissionProxy.Initialize().IsSuccessful;
+		}
+		else
+		{
+			displayProxy.PrintError(smr.ErrorMessage);
 		}
 	}
 }
