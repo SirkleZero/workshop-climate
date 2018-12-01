@@ -16,11 +16,11 @@ using namespace TX;
 static const unsigned long SampleFrequency = 20000; // every 20 seconds
 bool isFirstLoop = true;
 bool systemRunnable = true;
-SensorData data;
 
-SensorManager manager(AvailableSensors::All, TemperatureUnit::F, SampleFrequency);
+SensorManager sensorManager(AvailableSensors::All, TemperatureUnit::F, SampleFrequency);
 RFM69TXProxy transmissionProxy;
 FeatherOLEDProxy displayProxy;
+SensorData data;
 
 void setup() {
     Serial.begin(115200);
@@ -31,7 +31,7 @@ void setup() {
 	{
 		displayProxy.PrintWaiting();
 
-		if (manager.Initialize().IsSuccessful)
+		if (sensorManager.Initialize().IsSuccessful)
 		{
 			systemRunnable = transmissionProxy.Initialize().IsSuccessful;
 		}
@@ -39,17 +39,22 @@ void setup() {
 }
 
 void loop() {
+	// if all the checks from the Setup method ran successfully, we're good to run; otherwise, print an error message.
 	if (systemRunnable)
 	{
-		if (manager.ReadSensors(&data))
+		// the manager uses a configurable timer, so call this method as often as possible.
+		if (sensorManager.ReadSensors(&data))
 		{
+			// clear the waiting message from the display
 			if (isFirstLoop)
 			{
 				displayProxy.Clear();
 			}
 
+			// print the information from the sensors.
 			displayProxy.PrintSensors(data);
 
+			// use the radio and transmit the data. when done, print some information about how the transmission went.
 			TXResult result = transmissionProxy.Transmit(data);
 			displayProxy.PrintTransmissionInfo(result);
 
