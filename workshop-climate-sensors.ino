@@ -18,7 +18,7 @@ static const unsigned long SampleFrequency = 20000; // every 20 seconds
 bool isFirstLoop = true;
 bool systemRunnable = true;
 
-SensorManager sensorManager(AvailableSensors::All, TemperatureUnit::F, SampleFrequency);
+SensorManager sensorManager(AvailableSensors::BME280, TemperatureUnit::F, SampleFrequency);
 RFM69TXProxy transmissionProxy;
 FeatherOLEDProxy displayProxy;
 SensorData data;
@@ -26,7 +26,7 @@ SensorData data;
 void setup() {
     Serial.begin(115200);
 
-    //while (!Serial); // MAKE SURE TO REMOVE THIS!!!
+    while (!Serial); // MAKE SURE TO REMOVE THIS!!!
 
 	if (displayProxy.Initialize().IsSuccessful)
 	{
