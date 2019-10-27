@@ -13,7 +13,7 @@ using namespace Display;
 using namespace Sensors;
 using namespace TX;
 
-static const unsigned long SampleFrequency = 20000; // every 20 seconds
+static const unsigned long SampleFrequency = 15000; // every 15 seconds
 //static const unsigned long SampleFrequency = 60000; // every 60 seconds
 bool isFirstLoop = true;
 bool systemRunnable = true;
