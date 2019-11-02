@@ -3,6 +3,7 @@
 #include <MemoryFree.h>
 #include <pgmStrToRAM.h>
 #include <Adafruit_SleepyDog.h>
+#include <WiFiNINA.h>
 
 #include "workshop-climate-lib.h" // unsure exactly why this has to be here for this to compile. without it, the sub-directory .h files aren't found. Probably has something to do with not finding the library if nothing is loaded from the root of the src folder.
 #include "Sensors\SensorData.h"
@@ -49,7 +50,7 @@ we need our modules in the following priority order:
 void setup()
 {
 	Serial.begin(115200);
-	//while (!Serial); // MAKE SURE TO REMOVE THIS!!!
+	while (!Serial); // MAKE SURE TO REMOVE THIS!!!
 
 	// cascading checks to make sure all our everything thats required is initialized properly.
 	if (display.Initialize().IsSuccessful)
@@ -62,16 +63,30 @@ void setup()
 
 		if (sdCard.Initialize().IsSuccessful)
 		{
+			Serial.println("sd card initialized");
 			sdCard.LoadSecrets(&secrets);
 			sdCard.LoadConfiguration(&controllerConfiguration);
+			Serial.println("configuration loaded");
 
 			InitializationResult relayManagerResult = relayManager.Initialize(&controllerConfiguration);
 			if (relayManagerResult.IsSuccessful)
 			{
+				Serial.println("relay initialized");
+
 				InitializationResult radioResult = radio.Initialize();
 				if (radioResult.IsSuccessful)
 				{
+					Serial.println("Radio initialized");
+
 					internetEnabled = httpClient.Initialize(&secrets);
+					if (internetEnabled.IsSuccessful)
+					{
+						Serial.println("loaded internets");
+					}
+					else
+					{
+						Serial.println("failed to load internets");
+					}
 				}
 				else
 				{
@@ -94,6 +109,7 @@ void setup()
 		// This exists purely as a stability mechanism to mitigate device lockups / hangs / etc.
 		Watchdog.enable();
 		sdCard.LogMessage(F("Watchdog timer enabled during device setup."));
+		Serial.println("done loading things");
 	}
 }
 
