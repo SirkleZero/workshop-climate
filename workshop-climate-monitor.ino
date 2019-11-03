@@ -46,7 +46,7 @@ we need our modules in the following priority order:
 void setup()
 {
 	Serial.begin(115200);
-	while (!Serial); // MAKE SURE TO REMOVE THIS!!!
+	//while (!Serial); // MAKE SURE TO REMOVE THIS!!!
 
 	// cascading checks to make sure all our everything thats required is initialized properly.
 	if (display.Initialize().IsSuccessful)
@@ -75,6 +75,8 @@ void setup()
 				if (internetEnabled.IsSuccessful)
 				{
 					Serial.println("loaded internets");
+					// establish a connection to the network.
+					httpClient.Connect();
 				}
 				else
 				{
@@ -94,7 +96,6 @@ void setup()
 		// This exists purely as a stability mechanism to mitigate device lockups / hangs / etc.
 		Watchdog.enable();
 		sdCard.LogMessage(F("Watchdog timer enabled during device setup."));
-		Serial.println("done loading things");
 	}
 }
 
