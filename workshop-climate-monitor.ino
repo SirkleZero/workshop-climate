@@ -5,7 +5,13 @@
 #include <Adafruit_SleepyDog.h>
 #include <WiFiNINA.h>
 
-#include "workshop-climate-lib.h" // unsure exactly why this has to be here for this to compile. without it, the sub-directory .h files aren't found. Probably has something to do with not finding the library if nothing is loaded from the root of the src folder.
+/*
+ unsure exactly why this has to be here for this to compile. without it, the
+ sub-directory .h files aren't found. Probably has something to do with not
+ finding the library if nothing is loaded from the root of the src folder.
+*/
+#include "workshop-climate-lib.h"
+
 #include "Sensors\SensorData.h"
 #include "RX\RFM69RXProxy.h"
 #include "RX\SensorTransmissionResult.h"
@@ -39,9 +45,10 @@ AdafruitIOProxy httpClient;
 /*
 we need our modules in the following priority order:
 1. SD Card - Contains all of our configuration. Can't run without this information.
-2. The Display - we can technically function without a display, but we're going to use it to display errors, so uh, it's required.
-3. The RFM69 Radio - Sends us data. Without it, again, no point.
-4. The Internet / adafruit - we can function without this, it's the only component not really required.
+2. The Display - we can technically function without a display, but we're going to use it 
+   to display errors, so uh, it's required.
+3. The RFM69 Radio - Send and receives data. Without it, again, no point.
+4. The Internet / adafruit - we can function without this, it's the only component not required.
 */
 void setup()
 {
@@ -92,7 +99,8 @@ void setup()
 			}
 		}
 
-		// IMPORTANT! Turn on the watch dog timer and enable at the maximum value. For the M0 this is approximately 16 seconds, after whic the watch dog will restart the device.
+		// IMPORTANT! Turn on the watch dog timer and enable at the maximum value. For the M0 
+		// this is approximately 16 seconds, after which the watch dog will restart the device.
 		// This exists purely as a stability mechanism to mitigate device lockups / hangs / etc.
 		Watchdog.enable();
 		sdCard.LogMessage(F("Watchdog timer enabled during device setup."));
@@ -106,9 +114,12 @@ void loop()
 		// reset the watchdog with each loop iteration. If the loop hangs, the watchdog will reset the device.
 		Watchdog.reset();
 
-		// !!! CRITICAL !!!
-		// the rxProxy listen function needs to execute as often as possible to not miss any messages or acknowledgements. it would be bad to have the loop have a delay call in it, messages will be lost.
-		// DO NOT put a delay call in the loop function!
+		/*
+		!!! CRITICAL !!!
+		the rxProxy listen function needs to execute as often as possible to not miss any messages or 
+		acknowledgements. it would be bad for the loop to have a delay call in it, messages will be lost.
+		DO NOT put a delay call in the loop function!
+		*/
 		result = radio.Listen();
 		Watchdog.reset();
 
@@ -135,7 +146,13 @@ void loop()
 				}
 			}
 
-			// calling Reset on the radio is a total hack. It re-initializes the RF69 radio because the radio head library doesn't handle shared SPI bus very well (apparently). If we don't reinitialize this, the loop will catch only the first transmission, and after that it won't catch anything. This "fixes" that issue. Yes, it's dumb and shared SPI sucks, at least in this case.
+			/*
+			calling Reset on the radio is a total hack. It re-initializes the RF69 radio because the
+			radio head library doesn't handle shared SPI bus very well (apparently). If we don't
+			reinitialize this, the loop will catch only the first transmission, and after that it won't
+			catch anything. This "fixes" that issue. Yes, it's dumb and shared SPI sucks, at least
+			in this case.
+			*/
 			InitializationResult resetResult = radio.Reset();
 			if (!resetResult.IsSuccessful)
 			{
