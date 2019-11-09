@@ -8,11 +8,12 @@ the root of the src folder.
 */
 #include "workshop-climate-lib.h"
 
+#include "Sensors\BME280Proxy.h"
 #include "Sensors\BME280Data.h"
 #include "Display\ControllerDisplay.h"
+#include "Display\TouchScreenRegion.h"
 #include "Configuration\SDCardProxy.h"
 #include "Configuration\ControllerConfiguration.h"
-#include "Sensors\BME280Proxy.h"
 #include "TX\RFM69TXProxy.h"
 
 using namespace Configuration;
