@@ -41,7 +41,7 @@ void setup()
 	{
 		display.Clear();
 		display.DrawLayout();
-		display.PrintSensors(SensorData::EmptyData());
+		display.PrintSensors(BME280Data::EmptyData());
 
 		// Radio chip select needs to be pulled up per this thread
 		// https://forums.adafruit.com/viewtopic.php?f=47&t=120223&start=15
@@ -90,8 +90,8 @@ void loop()
 			}
 
 			// print the information from the sensors.
-			//display.PrintSensors(data);
-			data.PrintDebug();
+			display.PrintSensors(data);
+			//data.PrintDebug();
 
 			// use the radio and transmit the data. when done, print some information about how the transmission went.
 			//TXResult result = transmissionProxy.Transmit(data);
