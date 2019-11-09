@@ -8,11 +8,10 @@ the root of the src folder.
 */
 #include "workshop-climate-lib.h"
 
-#include "Sensors\SensorData.h"
+#include "Sensors\BME280Data.h"
 #include "Display\RXTFTFeatherwingProxy.h"
 #include "Configuration\SDCardProxy.h"
 #include "Configuration\ControllerConfiguration.h"
-#include "Sensors\SensorManager.h"
 #include "Sensors\BME280Proxy.h"
 #include "TX\RFM69TXProxy.h"
 
@@ -21,16 +20,16 @@ using namespace Display;
 using namespace Sensors;
 using namespace TX;
 
-static const unsigned long DefaultSampleFrequency = 15000; // every 15 seconds
+//static const unsigned long DefaultSampleFrequency = 15000; // every 15 seconds
 bool isFirstLoop = true;
 bool systemRunnable = true;
 
 SDCardProxy sdCard;
 RXTFTFeatherwingProxy display;
 ControllerConfiguration config;
-SensorManager sensorManager(AvailableSensors::BME280, TemperatureUnit::F, DefaultSampleFrequency);
+BME280Proxy bme280Proxy;
 RFM69TXProxy transmissionProxy;
-SensorData data;
+BME280Data data;
 
 void setup()
 {
@@ -52,14 +51,14 @@ void setup()
 		// no idea why this causes the sd card to fail initialization, but if we don't
 		// do one of these options, we can't read the sd card...... lame.
 		InitializationResult tr = transmissionProxy.Initialize();
-		InitializationResult smr = sensorManager.Initialize();
 		InitializationResult sdr = sdCard.Initialize();
 		if (sdr.IsSuccessful)
 		{
 			sdCard.LoadConfiguration(&config);
 		}
+		InitializationResult bmep = bme280Proxy.Initialize(TemperatureUnit::F, config.PollIntervalMS);
 
-		systemRunnable = smr.IsSuccessful && tr.IsSuccessful && sdr.IsSuccessful;
+		systemRunnable = bmep.IsSuccessful && tr.IsSuccessful && sdr.IsSuccessful;
 		systemRunnable = true;
 
 		// IMPORTANT! Turn on the watch dog timer and enable at the maximum value. For the M0 
@@ -80,7 +79,7 @@ void loop()
 		Watchdog.reset();
 
 		// the manager uses a configurable timer, so call this method as often as possible.
-		if (sensorManager.ReadSensors(&data))
+		if (bme280Proxy.ReadSensor(&data))
 		{
 			Watchdog.reset();
 
@@ -91,11 +90,11 @@ void loop()
 			}
 
 			// print the information from the sensors.
-			display.PrintSensors(data);
-			//data.PrintDebug();
+			//display.PrintSensors(data);
+			data.PrintDebug();
 
 			// use the radio and transmit the data. when done, print some information about how the transmission went.
-			TXResult result = transmissionProxy.Transmit(data);
+			//TXResult result = transmissionProxy.Transmit(data);
 			//displayProxy.PrintTransmissionInfo(result);
 			//result.PrintDebug();
 
