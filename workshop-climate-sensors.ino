@@ -36,7 +36,7 @@ void setup()
 {
 	Serial.begin(115200);
 
-	while (!Serial); // MAKE SURE TO REMOVE THIS!!!
+	//while (!Serial); // MAKE SURE TO REMOVE THIS!!!
 
 	if (display.Initialize().IsSuccessful)
 	{
