@@ -20,16 +20,15 @@ using namespace Display;
 using namespace Sensors;
 using namespace TX;
 
-//static const unsigned long DefaultSampleFrequency = 15000; // every 15 seconds
+BME280Data data;
+ControllerConfiguration config;
 bool isFirstLoop = true;
 bool systemRunnable = true;
 
 SDCardProxy sdCard;
 RXTFTFeatherwingProxy display;
-ControllerConfiguration config;
 BME280Proxy bme280Proxy;
 RFM69TXProxy transmissionProxy;
-BME280Data data;
 
 void setup()
 {
@@ -65,8 +64,7 @@ void setup()
 		// this is approximately 16 seconds, after which the watch dog will restart the device.
 		// This exists purely as a stability mechanism to mitigate device lockups / hangs / etc.
 		Watchdog.enable();
-		//sdCard.LogMessage(F("Watchdog timer enabled during device setup."));
-		Serial.println(F("Watchdog timer enabled during device setup."));
+		sdCard.LogMessage(F("Watchdog timer enabled during device setup."));
 	}
 }
 
@@ -78,7 +76,7 @@ void loop()
 		// reset the watchdog with each loop iteration. If the loop hangs, the watchdog will reset the device.
 		Watchdog.reset();
 
-		// the manager uses a configurable timer, so call this method as often as possible.
+		// Sensor proxies use a configurable timer, so call this method as often as possible.
 		if (bme280Proxy.ReadSensor(&data))
 		{
 			Watchdog.reset();
@@ -91,8 +89,8 @@ void loop()
 
 			// print the information from the sensors.
 			display.PrintSensors(data);
-			data.PrintDebug();
-			bme280Proxy.PrintDebug();
+			/*data.PrintDebug();
+			bme280Proxy.PrintDebug();*/
 
 			// use the radio and transmit the data. when done, print some information about how the transmission went.
 			//TXResult result = transmissionProxy.Transmit(data);
