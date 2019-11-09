@@ -91,7 +91,8 @@ void loop()
 
 			// print the information from the sensors.
 			display.PrintSensors(data);
-			BME280Proxy::PrintDebug(data);
+			data.PrintDebug();
+			bme280Proxy.PrintDebug();
 
 			// use the radio and transmit the data. when done, print some information about how the transmission went.
 			//TXResult result = transmissionProxy.Transmit(data);
