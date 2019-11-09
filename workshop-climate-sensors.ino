@@ -9,7 +9,7 @@ the root of the src folder.
 #include "workshop-climate-lib.h"
 
 #include "Sensors\BME280Data.h"
-#include "Display\RXTFTFeatherwingProxy.h"
+#include "Display\ControllerDisplay.h"
 #include "Configuration\SDCardProxy.h"
 #include "Configuration\ControllerConfiguration.h"
 #include "Sensors\BME280Proxy.h"
@@ -26,7 +26,7 @@ bool isFirstLoop = true;
 bool systemRunnable = true;
 
 SDCardProxy sdCard;
-RXTFTFeatherwingProxy display;
+ControllerDisplay display;
 BME280Proxy bme280Proxy;
 RFM69TXProxy transmissionProxy;
 
