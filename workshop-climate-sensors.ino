@@ -39,7 +39,7 @@ void setup()
 	{
 		display.Clear();
 		display.LoadData(BME280Data::EmptyData());
-		display.Display();
+		display.Display(ScreenRegion::Home);
 
 		// Radio chip select needs to be pulled up per this thread
 		// https://forums.adafruit.com/viewtopic.php?f=47&t=120223&start=15
