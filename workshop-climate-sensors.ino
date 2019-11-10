@@ -25,6 +25,7 @@ BME280Data data;
 ControllerConfiguration config;
 bool isFirstLoop = true;
 bool systemRunnable = true;
+TouchScreenRegion touchedRegion = TouchScreenRegion::None;
 
 SDCardProxy sdCard;
 ControllerDisplay display;
@@ -76,6 +77,35 @@ void loop()
 	{
 		// reset the watchdog with each loop iteration. If the loop hangs, the watchdog will reset the device.
 		Watchdog.reset();
+
+		// !!!TESTING!!!
+		// Working through how to handle screen click events within the loop.
+		touchedRegion = display.Touched();
+		if (touchedRegion != TouchScreenRegion::None)
+		{
+			switch (touchedRegion)
+			{
+				case TouchScreenRegion::BackToPrevious:
+					Serial.println(F("Clicked on back to previous"));
+					break;
+				case TouchScreenRegion::Home:
+					Serial.println(F("Clicked on home"));
+					break;
+				case TouchScreenRegion::Humidity:
+					Serial.println(F("Clicked on humidity"));
+					break;
+				case TouchScreenRegion::Settings:
+					Serial.println(F("Clicked on settings"));
+					break;
+				case TouchScreenRegion::Temperature:
+					Serial.println(F("Clicked on temperature"));
+					break;
+				default:
+					Serial.println(F("default (nothing clicked)"));
+					break;
+			}
+		}
+		// !!!END TESTING!!!
 
 		// Sensor proxies use a configurable timer, so call this method as often as possible.
 		if (bme280Proxy.ReadSensor(&data))
