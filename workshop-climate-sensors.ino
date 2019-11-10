@@ -90,18 +90,23 @@ void loop()
 			{
 				case TouchScreenRegion::BackToHome:
 					Serial.println(F("Home screen showing"));
+					display.Clear();
+					display.DrawLayout();
+					display.PrintSensors(data);
 					break;
 				case TouchScreenRegion::Home:
 					Serial.println(F("Home screen showing"));
 					break;
 				case TouchScreenRegion::Humidity:
 					Serial.println(F("Humidity showing"));
+					display.DisplayHumidityScreen();
 					break;
 				case TouchScreenRegion::Settings:
 					Serial.println(F("Settings showing"));
 					break;
 				case TouchScreenRegion::Temperature:
 					Serial.println(F("Temperature showing"));
+					display.DisplayTemperatureScreen();
 					break;
 				default:
 					Serial.println(F("Home showing"));
