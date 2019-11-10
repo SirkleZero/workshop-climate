@@ -11,7 +11,6 @@ the root of the src folder.
 #include "Sensors\BME280Proxy.h"
 #include "Sensors\BME280Data.h"
 #include "Display\ControllerDisplay.h"
-#include "Display\TouchScreenRegion.h"
 #include "Configuration\SDCardProxy.h"
 #include "Configuration\ControllerConfiguration.h"
 #include "TX\RFM69TXProxy.h"
@@ -23,10 +22,7 @@ using namespace TX;
 
 BME280Data data;
 ControllerConfiguration config;
-bool isFirstLoop = true;
 bool systemRunnable = true;
-TouchScreenRegion selectedRegion = TouchScreenRegion::Home;
-TouchScreenRegion activeRegion = TouchScreenRegion::Home;
 
 SDCardProxy sdCard;
 ControllerDisplay display;
@@ -42,8 +38,8 @@ void setup()
 	if (display.Initialize().IsSuccessful)
 	{
 		display.Clear();
-		display.DrawLayout();
-		display.PrintSensors(BME280Data::EmptyData());
+		display.LoadData(BME280Data::EmptyData());
+		display.Display();
 
 		// Radio chip select needs to be pulled up per this thread
 		// https://forums.adafruit.com/viewtopic.php?f=47&t=120223&start=15
@@ -68,6 +64,8 @@ void setup()
 		// This exists purely as a stability mechanism to mitigate device lockups / hangs / etc.
 		Watchdog.enable();
 		sdCard.LogMessage(F("Watchdog timer enabled during device setup."));
+
+		display.Display();
 	}
 }
 
@@ -76,60 +74,22 @@ void loop()
 	// if all the checks from the Setup method ran successfully, we're good to run; otherwise, print an error message.
 	if (systemRunnable)
 	{
+		// update the display
+		display.Display();
+
 		// reset the watchdog with each loop iteration. If the loop hangs, the watchdog will reset the device.
 		Watchdog.reset();
-
-		// !!!TESTING!!!
-		// Working through how to handle screen click events within the loop.
-		selectedRegion = display.Touched();
-		if (selectedRegion != TouchScreenRegion::None && selectedRegion != activeRegion)
-		{
-			activeRegion = selectedRegion;
-
-			switch (selectedRegion)
-			{
-				case TouchScreenRegion::BackToHome:
-					Serial.println(F("Home screen showing"));
-					display.Clear();
-					display.DrawLayout();
-					display.PrintSensors(data);
-					break;
-				case TouchScreenRegion::Home:
-					Serial.println(F("Home screen showing"));
-					break;
-				case TouchScreenRegion::Humidity:
-					Serial.println(F("Humidity showing"));
-					display.DisplayHumidityScreen();
-					break;
-				case TouchScreenRegion::Settings:
-					Serial.println(F("Settings showing"));
-					break;
-				case TouchScreenRegion::Temperature:
-					Serial.println(F("Temperature showing"));
-					display.DisplayTemperatureScreen();
-					break;
-				default:
-					Serial.println(F("Home showing"));
-					break;
-			}
-		}
-		// !!!END TESTING!!!
 
 		// Sensor proxies use a configurable timer, so call this method as often as possible.
 		if (bme280Proxy.ReadSensor(&data))
 		{
 			Watchdog.reset();
 
-			// clear the waiting message from the display
-			if (isFirstLoop)
-			{
-				//displayProxy.Clear();
-			}
-
 			// print the information from the sensors.
-			display.PrintSensors(data);
-			/*data.PrintDebug();
-			bme280Proxy.PrintDebug();*/
+			display.LoadData(data);
+			//display.Display();
+			data.PrintDebug();
+			//bme280Proxy.PrintDebug();
 
 			// use the radio and transmit the data. when done, print some information about how the transmission went.
 			//TXResult result = transmissionProxy.Transmit(data);
@@ -137,8 +97,6 @@ void loop()
 			//result.PrintDebug();
 
 			Watchdog.reset();
-
-			isFirstLoop = false;
 		}
 	}
 	else
