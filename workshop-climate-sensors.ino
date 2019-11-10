@@ -25,7 +25,8 @@ BME280Data data;
 ControllerConfiguration config;
 bool isFirstLoop = true;
 bool systemRunnable = true;
-TouchScreenRegion touchedRegion = TouchScreenRegion::None;
+TouchScreenRegion selectedRegion = TouchScreenRegion::Home;
+TouchScreenRegion activeRegion = TouchScreenRegion::Home;
 
 SDCardProxy sdCard;
 ControllerDisplay display;
@@ -80,28 +81,30 @@ void loop()
 
 		// !!!TESTING!!!
 		// Working through how to handle screen click events within the loop.
-		touchedRegion = display.Touched();
-		if (touchedRegion != TouchScreenRegion::None)
+		selectedRegion = display.Touched();
+		if (selectedRegion != TouchScreenRegion::None && selectedRegion != activeRegion)
 		{
-			switch (touchedRegion)
+			activeRegion = selectedRegion;
+
+			switch (selectedRegion)
 			{
-				case TouchScreenRegion::BackToPrevious:
-					Serial.println(F("Clicked on back to previous"));
+				case TouchScreenRegion::BackToHome:
+					Serial.println(F("Home screen showing"));
 					break;
 				case TouchScreenRegion::Home:
-					Serial.println(F("Clicked on home"));
+					Serial.println(F("Home screen showing"));
 					break;
 				case TouchScreenRegion::Humidity:
-					Serial.println(F("Clicked on humidity"));
+					Serial.println(F("Humidity showing"));
 					break;
 				case TouchScreenRegion::Settings:
-					Serial.println(F("Clicked on settings"));
+					Serial.println(F("Settings showing"));
 					break;
 				case TouchScreenRegion::Temperature:
-					Serial.println(F("Clicked on temperature"));
+					Serial.println(F("Temperature showing"));
 					break;
 				default:
-					Serial.println(F("default (nothing clicked)"));
+					Serial.println(F("Home showing"));
 					break;
 			}
 		}
