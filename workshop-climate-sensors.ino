@@ -38,8 +38,6 @@ void setup()
 	if (display.Initialize().IsSuccessful)
 	{
 		display.Clear();
-		display.LoadData(BME280Data::EmptyData());
-		display.Display(ScreenRegion::Home);
 
 		// Radio chip select needs to be pulled up per this thread
 		// https://forums.adafruit.com/viewtopic.php?f=47&t=120223&start=15
@@ -65,7 +63,11 @@ void setup()
 		Watchdog.enable();
 		sdCard.LogMessage(F("Watchdog timer enabled during device setup."));
 
-		display.Display();
+		// TODO: Maybe instead of loading an empty set of data for display for like, a quarter
+		// second, we display a message that we're booting and loading and stuff? Or a loading
+		// icon or picture or something?
+		display.LoadData(BME280Data::EmptyData());
+		display.Display(ScreenRegion::Home);
 	}
 }
 
@@ -74,16 +76,13 @@ void loop()
 	// if all the checks from the Setup method ran successfully, we're good to run; otherwise, print an error message.
 	if (systemRunnable)
 	{
-		// update the display
-		display.Display();
-
 		// reset the watchdog with each loop iteration. If the loop hangs, the watchdog will reset the device.
 		Watchdog.reset();
 
 		// Sensor proxies use a configurable timer, so call this method as often as possible.
 		if (bme280Proxy.ReadSensor(&data))
 		{
-			data.PrintDebug();
+			//data.PrintDebug();
 			Watchdog.reset();
 
 			// print the information from the sensors.
@@ -93,11 +92,13 @@ void loop()
 
 			// use the radio and transmit the data. when done, print some information about how the transmission went.
 			//TXResult result = transmissionProxy.Transmit(data);
-			//displayProxy.PrintTransmissionInfo(result);
 			//result.PrintDebug();
 
 			Watchdog.reset();
 		}
+
+		// update the display
+		display.Display();
 	}
 	else
 	{
