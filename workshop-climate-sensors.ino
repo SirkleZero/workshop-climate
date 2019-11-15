@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <Adafruit_SleepyDog.h>
+#include <MemoryFree.h>
 
 /*
 unsure exactly why this has to be here for this to compile. without it, the sub-directory .h files
@@ -15,14 +16,16 @@ the root of the src folder.
 #include "Configuration\ControllerConfiguration.h"
 #include "TX\RFM69TXProxy.h"
 
-#include "Sensors\ArrayThing.h"
+#include "CircularBuffer.h"
+#include "Sensors\BufferedBME280.h"
 
 using namespace Configuration;
 using namespace Display;
 using namespace Sensors;
 using namespace TX;
 
-ArrayThing t;
+CircularBuffer<float> cb(20);
+BufferedBME280 bufferedData(20);
 
 BME280Data data;
 ControllerConfiguration config;
@@ -99,9 +102,16 @@ void loop()
 			//result.PrintDebug();
 
 			// TESTING array based moving average
-			t.Add(data.Humidity);
-			Serial.print(F("Humidity Moving Average	: ")); Serial.println(t.Average());
 			Serial.print(F("Actual Humidity		: ")); Serial.println(data.Humidity);
+
+			cb.Add(data.Humidity); // circular buffer in the raw
+			Serial.print(F("Circular Buffer:	")); Serial.println(cb.Average());
+			
+			bufferedData.Add(data); // buffered version of the bme data
+			Serial.print(F("BME280 Buffer:	")); Serial.println(cb.Average());
+
+			// display.LoadData(bufferedData);
+			// END TESTING
 
 			Watchdog.reset();
 		}
