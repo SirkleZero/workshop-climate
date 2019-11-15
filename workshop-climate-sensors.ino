@@ -102,13 +102,15 @@ void loop()
 			//result.PrintDebug();
 
 			// TESTING array based moving average
-			Serial.print(F("Actual Humidity		: ")); Serial.println(data.Humidity);
+			Serial.print(F("Actual Humidity:	")); Serial.println(data.Humidity);
 
 			cb.Add(data.Humidity); // circular buffer in the raw
 			Serial.print(F("Circular Buffer:	")); Serial.println(cb.Average());
 			
 			bufferedData.Add(data); // buffered version of the bme data
-			Serial.print(F("BME280 Buffer:	")); Serial.println(cb.Average());
+			Serial.print(F("BME280 Buffer:	")); Serial.println(bufferedData.Humidity);
+
+			Serial.print(F("Free Memory:	")); Serial.println(freeMemory());
 
 			// display.LoadData(bufferedData);
 			// END TESTING
