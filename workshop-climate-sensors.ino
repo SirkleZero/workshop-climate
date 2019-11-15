@@ -104,7 +104,7 @@ void loop()
 			// TESTING array based moving average
 			Serial.print(F("Actual Humidity:	")); Serial.println(data.Humidity);
 
-			cb.Add(data.Humidity); // circular buffer in the raw
+			cb.Append(data.Humidity); // circular buffer in the raw
 			Serial.print(F("Circular Buffer:	")); Serial.println(cb.Average());
 			
 			bufferedData.Add(data); // buffered version of the bme data
