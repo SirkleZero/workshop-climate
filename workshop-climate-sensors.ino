@@ -15,10 +15,14 @@ the root of the src folder.
 #include "Configuration\ControllerConfiguration.h"
 #include "TX\RFM69TXProxy.h"
 
+#include "Sensors\ArrayThing.h"
+
 using namespace Configuration;
 using namespace Display;
 using namespace Sensors;
 using namespace TX;
+
+ArrayThing t;
 
 BME280Data data;
 ControllerConfiguration config;
@@ -93,6 +97,11 @@ void loop()
 			// use the radio and transmit the data. when done, print some information about how the transmission went.
 			//TXResult result = transmissionProxy.Transmit(data);
 			//result.PrintDebug();
+
+			// TESTING array based moving average
+			t.Add(data.Humidity);
+			Serial.print(F("Humidity Moving Average	: ")); Serial.println(t.Average());
+			Serial.print(F("Actual Humidity		: ")); Serial.println(data.Humidity);
 
 			Watchdog.reset();
 		}
