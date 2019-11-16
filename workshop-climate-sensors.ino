@@ -11,23 +11,19 @@ the root of the src folder.
 
 #include "Sensors\BME280Proxy.h"
 #include "Sensors\BME280Data.h"
+#include "Sensors\BufferedBME280.h"
 #include "Display\ControllerDisplay.h"
 #include "Configuration\SDCardProxy.h"
 #include "Configuration\ControllerConfiguration.h"
 #include "TX\RFM69TXProxy.h"
-
-#include "CircularBuffer.h"
-#include "Sensors\BufferedBME280.h"
 
 using namespace Configuration;
 using namespace Display;
 using namespace Sensors;
 using namespace TX;
 
-CircularBuffer<float> cb(20);
-BufferedBME280 bufferedData(20);
-
 BME280Data data;
+BufferedBME280 bufferedData(120);
 ControllerConfiguration config;
 bool systemRunnable = true;
 
@@ -103,9 +99,6 @@ void loop()
 
 			// TESTING array based moving average
 			Serial.print(F("Actual Humidity:	")); Serial.println(data.Humidity);
-
-			cb.Append(data.Humidity); // circular buffer in the raw
-			Serial.print(F("Circular Buffer:	")); Serial.println(cb.Average());
 			
 			bufferedData.Add(data); // buffered version of the bme data
 			Serial.print(F("BME280 Buffer:	")); Serial.println(bufferedData.Humidity);
