@@ -16,6 +16,9 @@ the root of the src folder.
 #include "Configuration\ControllerConfiguration.h"
 #include "TX\RFM69TXProxy.h"
 
+// set a boolean value that determines if we want serial debugging to work during the setup phase
+bool enableSetupSerialWait = false;
+
 using namespace Configuration;
 using namespace Display;
 using namespace Sensors;
@@ -35,7 +38,10 @@ void setup()
 {
 	Serial.begin(115200);
 
-	while (!Serial); // MAKE SURE TO REMOVE THIS!!!
+	if (enableSetupSerialWait)
+	{
+		while (!Serial);
+	}
 
 	if (display.Initialize().IsSuccessful)
 	{
