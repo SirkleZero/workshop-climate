@@ -12,15 +12,17 @@
 */
 #include "workshop-climate-lib.h"
 
-#include "Sensors\SensorData.h"
 #include "RX\RFM69RXProxy.h"
 #include "RX\SensorTransmissionResult.h"
 #include "TX\AdafruitIOProxy.h"
 #include "TX\IoTUploadResult.h"
-#include "Display\RXTFTFeatherwingProxy.h"
+#include "Display\ControllerDisplay.h"
 #include "Configuration\SDCardProxy.h"
 #include "Configuration\Secrets.h"
 #include "Configuration\ControllerConfiguration.h"
+
+// set a boolean value that determines if we want serial debugging to work during the setup phase
+bool enableSetupSerialWait = false;
 
 using namespace Configuration;
 using namespace Display;
@@ -38,7 +40,7 @@ InitializationResult internetEnabled;
 
 // objects that handle functionality
 SDCardProxy sdCard;
-RXTFTFeatherwingProxy display;
+ControllerDisplay display;
 RFM69RXProxy radio;
 AdafruitIOProxy httpClient;
 
@@ -53,16 +55,22 @@ we need our modules in the following priority order:
 void setup()
 {
 	Serial.begin(115200);
-	//while (!Serial); // MAKE SURE TO REMOVE THIS!!!
+
+	if (enableSetupSerialWait)
+	{
+		while (!Serial);
+	}
 
 	// cascading checks to make sure all our everything thats required is initialized properly.
 	if (display.Initialize().IsSuccessful)
 	{
 		display.Clear();
-		display.DrawLayout();
 
-		display.PrintSensors(SensorData::EmptyData());
-		display.PrintFreeMemory(freeMemory());
+		// TODO: Maybe instead of loading an empty set of data for display for like, a quarter
+		// second, we display a message that we're booting and loading and stuff? Or a loading
+		// icon or picture or something?
+		display.LoadData(BME280Data::EmptyData());
+		display.Display(ScreenRegion::Home);
 
 		if (sdCard.Initialize().IsSuccessful)
 		{
@@ -93,7 +101,6 @@ void setup()
 			else
 			{
 				systemRunnable = false;
-				display.PrintError(radioResult.ErrorMessage);
 				Serial.println(radioResult.ErrorMessage);
 				sdCard.LogMessage(radioResult.ErrorMessage);
 			}
@@ -104,6 +111,12 @@ void setup()
 		// This exists purely as a stability mechanism to mitigate device lockups / hangs / etc.
 		Watchdog.enable();
 		sdCard.LogMessage(F("Watchdog timer enabled during device setup."));
+	
+		//// TODO: Maybe instead of loading an empty set of data for display for like, a quarter
+		//// second, we display a message that we're booting and loading and stuff? Or a loading
+		//// icon or picture or something?
+		//display.LoadData(BME280Data::EmptyData());
+		//display.Display(ScreenRegion::Home);
 	}
 }
 
@@ -125,10 +138,11 @@ void loop()
 
 		if (result.HasResult)
 		{
-			display.PrintSensors(result.Data);
-			display.PrintFreeMemory(freeMemory());
-
 			Watchdog.reset();
+
+			// print the information from the sensors.
+			display.LoadData(result.Data);
+			display.Display();
 
 			// if the internet isn't working for some reason, don't bother trying to upload anything.
 			if (internetEnabled.IsSuccessful)
@@ -140,7 +154,6 @@ void loop()
 
 				if (!uploadResult.IsSuccess)
 				{
-					display.PrintError(uploadResult.ErrorMessage);
 					Serial.println(uploadResult.ErrorMessage);
 					sdCard.LogMessage(uploadResult.ErrorMessage);
 				}
@@ -157,21 +170,18 @@ void loop()
 			if (!resetResult.IsSuccessful)
 			{
 				// something didn't work here, so let's...
-
-				display.PrintError(resetResult.ErrorMessage);
 				Serial.println(resetResult.ErrorMessage);
 				sdCard.LogMessage(resetResult.ErrorMessage);
 			}
-
-			// display free memory after things have run.
-			display.PrintFreeMemory(freeMemory());
 		}
+
+		// update the display
+		display.Display();
 	}
 	else
 	{
 		// the needed components of the system are not present or working, show a message
 		const __FlashStringHelper *msg = F("One or more components failed to initialize or run.");
 		Serial.println(msg);
-		display.PrintError(msg);
 	}
 }
