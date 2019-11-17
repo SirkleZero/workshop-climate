@@ -97,17 +97,16 @@ void loop()
 			// print the information from the sensors.
 			display.LoadData(data);
 			display.Display();
-			//bme280Proxy.PrintDebug();
 
 			// use the radio and transmit the data. when done, print some information about how the transmission went.
-			//TXResult result = transmissionProxy.Transmit(data);
-			//result.PrintDebug();
+			TXResult result = transmissionProxy.Transmit(data);
+			result.PrintDebug();
 
 			// TESTING array based moving average
-			Serial.print(F("Actual Humidity:	")); Serial.println(data.Humidity);
+			//Serial.print(F("Actual Humidity:	")); Serial.println(data.Humidity);
 			
 			bufferedData.Add(data); // buffered version of the bme data
-			Serial.print(F("BME280 Buffer:	")); Serial.println(bufferedData.Humidity);
+			//Serial.print(F("BME280 Buffer:	")); Serial.println(bufferedData.Humidity);
 
 			// display.LoadData(bufferedData);
 			// END TESTING
