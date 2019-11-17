@@ -1,6 +1,5 @@
 #include <Arduino.h>
 #include <Adafruit_SleepyDog.h>
-#include <MemoryFree.h>
 
 /*
 unsure exactly why this has to be here for this to compile. without it, the sub-directory .h files
@@ -102,8 +101,6 @@ void loop()
 			
 			bufferedData.Add(data); // buffered version of the bme data
 			Serial.print(F("BME280 Buffer:	")); Serial.println(bufferedData.Humidity);
-
-			Serial.print(F("Free Memory:	")); Serial.println(freeMemory());
 
 			// display.LoadData(bufferedData);
 			// END TESTING
