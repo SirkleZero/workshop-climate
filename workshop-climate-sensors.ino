@@ -47,6 +47,7 @@ void setup()
 	{
 		display.Clear();
 
+		// NOTE!
 		// Radio chip select needs to be pulled up per this thread
 		// https://forums.adafruit.com/viewtopic.php?f=47&t=120223&start=15
 		//pinMode(8, INPUT_PULLUP);
