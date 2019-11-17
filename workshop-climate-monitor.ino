@@ -16,7 +16,7 @@
 #include "RX\SensorTransmissionResult.h"
 #include "TX\AdafruitIOProxy.h"
 #include "TX\IoTUploadResult.h"
-#include "Display\ControllerDisplay.h"
+#include "Display\MonitorDisplay.h"
 #include "Configuration\SDCardProxy.h"
 #include "Configuration\Secrets.h"
 #include "Configuration\ControllerConfiguration.h"
@@ -40,7 +40,7 @@ InitializationResult internetEnabled;
 
 // objects that handle functionality
 SDCardProxy sdCard;
-ControllerDisplay display;
+MonitorDisplay display;
 RFM69RXProxy radio;
 AdafruitIOProxy httpClient;
 
