@@ -91,7 +91,6 @@ void loop()
 		// Sensor proxies use a configurable timer, so call this method as often as possible.
 		if (bme280Proxy.ReadSensor(&data))
 		{
-			//data.PrintDebug();
 			Watchdog.reset();
 
 			// print the information from the sensors.
