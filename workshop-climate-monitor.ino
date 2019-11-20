@@ -35,8 +35,9 @@ Secrets secrets;
 SensorTransmissionResult result;
 IoTUploadResult uploadResult;
 ControllerConfiguration controllerConfiguration;
-bool systemRunnable = true;
 InitializationResult internetEnabled;
+bool systemRunnable = true;
+bool isFirstLoop = true;
 
 // objects that handle functionality
 SDCardProxy sdCard;
@@ -66,42 +67,55 @@ void setup()
 	{
 		display.Clear();
 
-		// TODO: Maybe instead of loading an empty set of data for display for like, a quarter
-		// second, we display a message that we're booting and loading and stuff? Or a loading
-		// icon or picture or something?
-		display.LoadData(BME280Data::EmptyData());
-		display.Display(ScreenRegion::Home);
+		display.LoadMessage(F("Display initialized..."));
+		display.Display(ScreenRegion::StatusMessage);
 
 		if (sdCard.Initialize().IsSuccessful)
 		{
-			Serial.println("sd card initialized");
+			display.LoadMessage(F("SD card initialized..."));
+			display.Display(ScreenRegion::StatusMessage);
+
 			sdCard.LoadSecrets(&secrets);
 			sdCard.LoadConfiguration(&controllerConfiguration);
-			Serial.println("configuration loaded");
-
-			Serial.println("relay initialized");
+			
+			display.LoadMessage(F("Configuration loaded..."));
+			display.Display(ScreenRegion::StatusMessage);
 
 			InitializationResult radioResult = radio.Initialize();
 			if (radioResult.IsSuccessful)
 			{
-				Serial.println("Radio initialized");
+				display.LoadMessage(F("Radio initialized..."));
+				display.Display(ScreenRegion::StatusMessage);
 
 				internetEnabled = httpClient.Initialize(&secrets);
 				if (internetEnabled.IsSuccessful)
 				{
-					Serial.println("loaded internets");
+					display.LoadMessage(F("Networking initialized..."));
+					display.Display(ScreenRegion::StatusMessage);
+
 					// establish a connection to the network.
-					httpClient.Connect();
+					if (httpClient.Connect())
+					{
+						display.LoadMessage(F("Connected to the network!"));
+						display.Display(ScreenRegion::StatusMessage);
+					}
+					else
+					{
+						display.LoadMessage(F("Failed to connect to the network!"));
+						display.Display(ScreenRegion::StatusMessage);
+					}
 				}
 				else
 				{
-					Serial.println("failed to load internets");
+					display.LoadMessage(F("Failed to initialize networking!"));
+					display.Display(ScreenRegion::StatusMessage);
 				}
 			}
 			else
 			{
 				systemRunnable = false;
-				Serial.println(radioResult.ErrorMessage);
+				display.LoadMessage(F("Failed to initialize the radio!"));
+				display.Display(ScreenRegion::StatusMessage);
 				sdCard.LogMessage(radioResult.ErrorMessage);
 			}
 		}
@@ -110,13 +124,16 @@ void setup()
 		// this is approximately 16 seconds, after which the watch dog will restart the device.
 		// This exists purely as a stability mechanism to mitigate device lockups / hangs / etc.
 		Watchdog.enable();
-		sdCard.LogMessage(F("Watchdog timer enabled during device setup."));
+		sdCard.LogMessage(F("System booted successfully."));
 	
 		//// TODO: Maybe instead of loading an empty set of data for display for like, a quarter
 		//// second, we display a message that we're booting and loading and stuff? Or a loading
 		//// icon or picture or something?
 		//display.LoadData(BME280Data::EmptyData());
 		//display.Display(ScreenRegion::Home);
+
+		display.LoadMessage(F("Waiting on sensor transmission..."));
+		display.Display(ScreenRegion::StatusMessage);
 	}
 }
 
@@ -141,7 +158,12 @@ void loop()
 			Watchdog.reset();
 
 			// print the information from the sensors.
-			display.LoadData(result.Data);
+			display.LoadSensorData(result.Data);
+			if (isFirstLoop)
+			{
+				display.Display(ScreenRegion::Home);
+				isFirstLoop = false;
+			}
 			display.Display();
 
 			// if the internet isn't working for some reason, don't bother trying to upload anything.
