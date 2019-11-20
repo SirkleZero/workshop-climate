@@ -165,6 +165,7 @@ void loop()
 				isFirstLoop = false;
 			}
 			display.Display();
+			Watchdog.reset();
 
 			// if the internet isn't working for some reason, don't bother trying to upload anything.
 			if (internetEnabled.IsSuccessful)
