@@ -134,6 +134,7 @@ void setup()
 
 		display.LoadMessage(F("Waiting on sensor transmission..."));
 		display.Display(ScreenRegion::StatusMessage);
+		Watchdog.reset();
 	}
 }
 
@@ -179,6 +180,7 @@ void loop()
 				{
 					Serial.println(uploadResult.ErrorMessage);
 					sdCard.LogMessage(uploadResult.ErrorMessage);
+					Watchdog.reset();
 				}
 			}
 
@@ -195,6 +197,7 @@ void loop()
 				// something didn't work here, so let's...
 				Serial.println(resetResult.ErrorMessage);
 				sdCard.LogMessage(resetResult.ErrorMessage);
+				Watchdog.reset();
 			}
 		}
 
