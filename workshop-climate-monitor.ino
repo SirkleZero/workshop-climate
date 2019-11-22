@@ -20,6 +20,7 @@
 #include "Configuration\SDCardProxy.h"
 #include "Configuration\Secrets.h"
 #include "Configuration\ControllerConfiguration.h"
+#include "Sensors\BufferedBME280.h"
 
 // set a boolean value that determines if we want serial debugging to work during the setup phase
 bool enableSetupSerialWait = false;
@@ -36,6 +37,7 @@ SensorTransmissionResult result;
 IoTUploadResult uploadResult;
 ControllerConfiguration controllerConfiguration;
 InitializationResult internetEnabled;
+BufferedBME280 sensorBuffer(20); // At 4 readings per minute, this will be a 5 minute buffer.
 bool systemRunnable = true;
 bool isFirstLoop = true;
 
@@ -150,10 +152,11 @@ void loop()
 
 		if (result.HasResult)
 		{
+			sensorBuffer.Add(result.Data);
 			Watchdog.reset();
 
 			// print the information from the sensors.
-			display.LoadSensorData(result.Data);
+			display.LoadSensorData(sensorBuffer);
 			if (isFirstLoop)
 			{
 				display.Display(ScreenRegion::Home);
@@ -165,7 +168,7 @@ void loop()
 			// if the internet isn't working for some reason, don't bother trying to upload anything.
 			if (internetEnabled.IsSuccessful)
 			{
-				uploadResult = httpClient.Transmit(result.Data);
+				uploadResult = httpClient.Transmit(sensorBuffer);
 				// The http transmission is likely the most time consuming thing in this application.
 				// Make sure to reset the watchdog after it's completed or the device will reboot!
 				Watchdog.reset();
