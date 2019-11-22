@@ -90,7 +90,7 @@ void setup()
 				internetEnabled = httpClient.Initialize(&secrets);
 				if (internetEnabled.IsSuccessful)
 				{
-					display.LoadMessage(F("Networking initialized..."));
+					display.LoadMessage(F("Networking initialized, connecting..."));
 					display.Display(ScreenRegion::StatusMessage);
 
 					// establish a connection to the network.
@@ -119,22 +119,16 @@ void setup()
 				sdCard.LogMessage(radioResult.ErrorMessage);
 			}
 		}
-
+	
+		// we're done loading things, display a waiting message
+		display.LoadMessage(F("Waiting on sensor transmission..."));
+		display.Display(ScreenRegion::StatusMessage);
+		
 		// IMPORTANT! Turn on the watch dog timer and enable at the maximum value. For the M0 
 		// this is approximately 16 seconds, after which the watch dog will restart the device.
 		// This exists purely as a stability mechanism to mitigate device lockups / hangs / etc.
-		Watchdog.enable();
 		sdCard.LogMessage(F("System booted successfully."));
-	
-		//// TODO: Maybe instead of loading an empty set of data for display for like, a quarter
-		//// second, we display a message that we're booting and loading and stuff? Or a loading
-		//// icon or picture or something?
-		//display.LoadData(BME280Data::EmptyData());
-		//display.Display(ScreenRegion::Home);
-
-		display.LoadMessage(F("Waiting on sensor transmission..."));
-		display.Display(ScreenRegion::StatusMessage);
-		Watchdog.reset();
+		Watchdog.enable();
 	}
 }
 
