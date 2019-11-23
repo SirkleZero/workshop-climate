@@ -11,7 +11,7 @@ the root of the src folder.
 #include "Sensors\BME280Proxy.h"
 #include "Sensors\BME280Data.h"
 #include "Sensors\BufferedBME280.h"
-#include "Display\ControllerDisplay.h"
+#include "Display\TFTDisplay.h"
 #include "Configuration\SDCardProxy.h"
 #include "Configuration\ControllerConfiguration.h"
 #include "TX\RFM69TXProxy.h"
@@ -30,7 +30,7 @@ ControllerConfiguration config;
 bool systemRunnable = true;
 
 SDCardProxy sdCard;
-ControllerDisplay display;
+TFTDisplay display;
 BME280Proxy bme280Proxy;
 RFM69TXProxy transmissionProxy;
 
@@ -75,7 +75,7 @@ void setup()
 		// TODO: Maybe instead of loading an empty set of data for display for like, a quarter
 		// second, we display a message that we're booting and loading and stuff? Or a loading
 		// icon or picture or something?
-		display.LoadData(BME280Data::EmptyData());
+		display.LoadSensorData(BME280Data::EmptyData());
 		display.Display(ScreenRegion::Home);
 	}
 }
@@ -94,7 +94,7 @@ void loop()
 			Watchdog.reset();
 
 			// print the information from the sensors.
-			display.LoadData(data);
+			display.LoadSensorData(data);
 			display.Display();
 
 			// use the radio and transmit the data. when done, print some information about how the transmission went.
