@@ -16,7 +16,7 @@
 #include "RX\SensorTransmissionResult.h"
 #include "TX\AdafruitIOProxy.h"
 #include "TX\IoTUploadResult.h"
-#include "Display\TFT35.h"
+#include "Display\TFTDisplay.h"
 #include "Configuration\SDCardProxy.h"
 #include "Configuration\Secrets.h"
 #include "Configuration\ControllerConfiguration.h"
@@ -43,7 +43,7 @@ bool isFirstLoop = true;
 
 // objects that handle functionality
 SDCardProxy sdCard;
-TFT35 display;
+TFTDisplay display;
 RFM69RXProxy radio;
 AdafruitIOProxy httpClient;
 
