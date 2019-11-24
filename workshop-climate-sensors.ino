@@ -28,6 +28,7 @@ BME280Data data;
 BufferedBME280 bufferedData(120);
 ControllerConfiguration config;
 bool systemRunnable = true;
+bool isFirstLoop = true;
 
 SDCardProxy sdCard;
 TFTDisplay display;
@@ -66,17 +67,15 @@ void setup()
 		systemRunnable = bmep.IsSuccessful && tr.IsSuccessful && sdr.IsSuccessful;
 		systemRunnable = true;
 
+		// we're done loading things, display a waiting message
+		display.LoadMessage(F("Waiting on sensors..."));
+		display.Display(ScreenRegion::StatusMessage);
+
 		// IMPORTANT! Turn on the watch dog timer and enable at the maximum value. For the M0 
 		// this is approximately 16 seconds, after which the watch dog will restart the device.
 		// This exists purely as a stability mechanism to mitigate device lockups / hangs / etc.
+		sdCard.LogMessage(F("System booted successfully."));
 		Watchdog.enable();
-		sdCard.LogMessage(F("Watchdog timer enabled during device setup."));
-
-		// TODO: Maybe instead of loading an empty set of data for display for like, a quarter
-		// second, we display a message that we're booting and loading and stuff? Or a loading
-		// icon or picture or something?
-		display.LoadSensorData(BME280Data::EmptyData());
-		display.Display(ScreenRegion::Home);
 	}
 }
 
@@ -95,7 +94,13 @@ void loop()
 
 			// print the information from the sensors.
 			display.LoadSensorData(data);
+			if (isFirstLoop)
+			{
+				display.Display(ScreenRegion::Home);
+				isFirstLoop = false;
+			}
 			display.Display();
+			Watchdog.reset();
 
 			// use the radio and transmit the data. when done, print some information about how the transmission went.
 			TXResult result = transmissionProxy.Transmit(data);
