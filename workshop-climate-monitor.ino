@@ -19,7 +19,6 @@
 #include "Display\TFTDisplay.h"
 #include "Configuration\SDCardProxy.h"
 #include "Configuration\Secrets.h"
-#include "Configuration\ControllerConfiguration.h"
 #include "Sensors\BufferedBME280.h"
 
 // set a boolean value that determines if we want serial debugging to work during the setup phase
@@ -35,7 +34,6 @@ using namespace TX;
 Secrets secrets;
 SensorTransmissionResult result;
 IoTUploadResult uploadResult;
-ControllerConfiguration controllerConfiguration;
 InitializationResult internetEnabled;
 BufferedBME280 sensorBuffer(20); // At 4 readings per minute, this will be a 5 minute buffer.
 bool systemRunnable = true;
@@ -78,7 +76,6 @@ void setup()
 			display.Display(ScreenRegion::StatusMessage);
 
 			sdCard.LoadSecrets(&secrets);
-			sdCard.LoadConfiguration(&controllerConfiguration);
 			
 			display.LoadMessage(F("Configuration loaded..."));
 			display.Display(ScreenRegion::StatusMessage);
