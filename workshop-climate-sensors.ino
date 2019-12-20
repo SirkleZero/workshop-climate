@@ -8,6 +8,7 @@ the root of the src folder.
 */
 #include "workshop-climate-lib.h"
 
+#include "Devices.h"
 #include "Sensors\BME280Proxy.h"
 #include "Sensors\BME280Data.h"
 #include "Sensors\BufferedBME280.h"
@@ -15,6 +16,7 @@ the root of the src folder.
 #include "Configuration\SDCardProxy.h"
 #include "Configuration\ControllerConfiguration.h"
 #include "TX\RFM69TXProxy.h"
+#include "Relay\HumidityRelayManager.h"
 
 // set a boolean value that determines if we want serial debugging to work during the setup phase
 bool enableSetupSerialWait = false;
@@ -23,10 +25,12 @@ using namespace Configuration;
 using namespace Display;
 using namespace Sensors;
 using namespace TX;
+using namespace Relay;
 
 BME280Data data;
 BufferedBME280 bufferedData(120);
 ControllerConfiguration config;
+Devices mode = Devices::Controller;
 bool systemRunnable = true;
 bool isFirstLoop = true;
 
@@ -34,6 +38,7 @@ SDCardProxy sdCard;
 TFTDisplay display;
 BME280Proxy bme280Proxy;
 RFM69TXProxy transmissionProxy;
+HumidityRelayManager relayManager;
 
 void setup()
 {
@@ -62,6 +67,8 @@ void setup()
 		{
 			sdCard.LoadConfiguration(&config);
 		}
+		InitializationResult relayManagerResult = relayManager.Initialize(&config);
+
 		InitializationResult bmep = bme280Proxy.Initialize(TemperatureUnit::F, config.PollIntervalMS);
 
 		systemRunnable = bmep.IsSuccessful && tr.IsSuccessful && sdr.IsSuccessful;
@@ -87,39 +94,17 @@ void loop()
 		// reset the watchdog with each loop iteration. If the loop hangs, the watchdog will reset the device.
 		Watchdog.reset();
 
-		// Sensor proxies use a configurable timer, so call this method as often as possible.
-		if (bme280Proxy.ReadSensor(&data))
+		switch (mode)
 		{
-			Watchdog.reset();
-
-			// print the information from the sensors.
-			display.LoadSensorData(data);
-			if (isFirstLoop)
-			{
-				display.Display(ScreenRegion::Home);
-				isFirstLoop = false;
-			}
-			display.Display();
-			Watchdog.reset();
-
-			// use the radio and transmit the data. when done, print some information about how the transmission went.
-			TXResult result = transmissionProxy.Transmit(data);
-			result.PrintDebug();
-
-			// TESTING array based moving average
-			//Serial.print(F("Actual Humidity:	")); Serial.println(data.Humidity);
-			
-			bufferedData.Add(data); // buffered version of the bme data
-			//Serial.print(F("BME280 Buffer:	")); Serial.println(bufferedData.Humidity);
-
-			// display.LoadData(bufferedData);
-			// END TESTING
-
-			Watchdog.reset();
+			case Devices::Controller:
+				RunAsController();
+				break;
+			case Devices::ClimateSensor:
+				RunAsSensor();
+				break;
+			default:
+				break;
 		}
-
-		// update the display
-		display.Display();
 	}
 	else
 	{
@@ -128,4 +113,95 @@ void loop()
 		Serial.println(msg);
 		//displayProxy.PrintError(msg);
 	}
+}
+
+void RunAsController()
+{
+	Watchdog.reset();
+
+	/*
+	If we are configured in controller mode:
+	1. Read from the local sensors
+	2. Transmit local sensor readings
+	3. Listen for transmissions from remote climate sensors
+	4. Buffer local and remote data in the buffered data structure
+	5. Use the relay manager to control the humidifier and dehumidifier based on the
+	buffered data
+	*/
+
+	// Sensor proxies use a configurable timer, so call this method as often as possible.
+	if (bme280Proxy.ReadSensor(&data))
+	{
+		Watchdog.reset();
+
+		// display information from the sensors.
+		DisplayReadings(data);
+
+		// use the relay manager to adjust humidification based on sensor data.
+		relayManager.AdjustClimate(data);
+
+		TransmitData(data);
+
+		Watchdog.reset();
+	}
+
+	// update the display
+	display.Display();
+
+	/*
+	Use the emergency shutoff function to shut off the relays if a pre-determined time amount has lapsed.
+	All of this logic is within this method, no other calls are necessary. The KeepAlive() method is
+	essentially a dead man switch that this method uses to either keep things going, or, if the sensor array
+	functionality doesn't transmit anything or we don't receive anything, we shut down power to all our devices.
+	This is a safety thing.
+	*/
+	relayManager.EmergencyShutoff();
+}
+
+void RunAsSensor()
+{
+	Watchdog.reset();
+
+	/*
+	If we are configured in Sensor mode:
+	1. Read from local sensors
+	2. Transmit local sensor readings
+	*/
+
+	// Sensor proxies use a configurable timer, so call this method as often as possible.
+	if (bme280Proxy.ReadSensor(&data))
+	{
+		Watchdog.reset();
+
+		// display information from the sensors.
+		DisplayReadings(data);
+
+		// use the relay manager to adjust humidification based on sensor data.
+		relayManager.AdjustClimate(data);
+
+		TransmitData(data);
+
+		Watchdog.reset();
+	}
+
+	// update the display
+	display.Display();
+}
+
+void DisplayReadings(BME280Data sensorData)
+{
+	display.LoadSensorData(sensorData);
+	if (isFirstLoop)
+	{
+		display.Display(ScreenRegion::Home);
+		isFirstLoop = false;
+	}
+	display.Display();
+	Watchdog.reset();
+}
+
+void TransmitData(BME280Data sensorData)
+{
+	TXResult result = transmissionProxy.Transmit(sensorData);
+	result.PrintDebug();
 }
