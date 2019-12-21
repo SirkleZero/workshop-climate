@@ -160,7 +160,6 @@ void RunAsController()
 
 	// use the relay manager to adjust humidification based on buffered sensor data.
 	relayManager.AdjustClimate(bufferedData);
-
 	Watchdog.reset();
 
 	// update the display
