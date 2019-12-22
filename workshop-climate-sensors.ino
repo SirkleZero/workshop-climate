@@ -30,7 +30,7 @@ using namespace Relay;
 using namespace RX;
 
 BME280Data data;
-BufferedBME280 bufferedData(4);
+BufferedBME280 bufferedData(20);
 ControllerConfiguration config;
 Devices mode = Devices::Controller;
 bool systemRunnable = true;
@@ -125,6 +125,15 @@ void RunAsController()
 	Watchdog.reset();
 
 	/*
+	Use the emergency shutoff function to shut off the relays if a pre-determined time amount has lapsed.
+	All of this logic is within this method, no other calls are necessary. The KeepAlive() method is
+	essentially a dead man switch that this method uses to either keep things going, or, if the sensor array
+	functionality doesn't transmit anything or we don't receive anything, we shut down power to all our devices.
+	This is a safety thing.
+	*/
+	relayManager.EmergencyShutoff();
+
+	/*
 	If we are configured in controller mode:
 	1. Read from the local sensors
 	2. Transmit local sensor readings
@@ -164,15 +173,6 @@ void RunAsController()
 
 	// update the display
 	display.Display();
-
-	/*
-	Use the emergency shutoff function to shut off the relays if a pre-determined time amount has lapsed.
-	All of this logic is within this method, no other calls are necessary. The KeepAlive() method is
-	essentially a dead man switch that this method uses to either keep things going, or, if the sensor array
-	functionality doesn't transmit anything or we don't receive anything, we shut down power to all our devices.
-	This is a safety thing.
-	*/
-	//relayManager.EmergencyShutoff();
 }
 
 void RunAsSensor()
