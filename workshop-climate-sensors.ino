@@ -30,7 +30,7 @@ using namespace Relay;
 using namespace RX;
 
 BME280Data data;
-BufferedBME280 bufferedData(120);
+BufferedBME280 bufferedData(4);
 ControllerConfiguration config;
 Devices mode = Devices::Controller;
 bool systemRunnable = true;
@@ -114,7 +114,7 @@ void loop()
 	else
 	{
 		// the needed components of the system are not present or working, show a message
-		const __FlashStringHelper *msg = F("One or more components failed to initialize.");
+		const __FlashStringHelper* msg = F("One or more components failed to initialize.");
 		Serial.println(msg);
 		//displayProxy.PrintError(msg);
 	}
