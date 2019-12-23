@@ -35,7 +35,7 @@ Secrets secrets;
 SensorTransmissionResult result;
 IoTUploadResult uploadResult;
 InitializationResult internetEnabled;
-BufferedBME280 sensorBuffer(20); // At 4 readings per minute, this will be a 5 minute buffer.
+BufferedBME280 sensorBuffer(40); // At 4 readings per minute, this will be a 5 minute buffer.
 bool systemRunnable = true;
 bool isFirstLoop = true;
 
