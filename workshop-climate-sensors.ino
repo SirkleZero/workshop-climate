@@ -30,9 +30,9 @@ using namespace Relay;
 using namespace RX;
 
 BME280Data data;
-BufferedBME280 bufferedData(20);
+BufferedBME280 bufferedData(40);
 ControllerConfiguration config;
-Devices mode = Devices::ClimateSensor;
+Devices mode = Devices::Controller;
 bool systemRunnable = true;
 bool isFirstLoop = true;
 
@@ -135,11 +135,11 @@ void RunAsController()
 
 	/*
 	If we are configured in controller mode:
-	1. Read from the local sensors
-	2. Transmit local sensor readings
-	3. Listen for transmissions from remote climate sensors
-	4. Buffer local and remote data in the buffered data structure
-	5. Use the relay manager to control the humidifier and dehumidifier based on the
+	1.	Listen for transmissions from remote climate sensors
+	2.	Read from the local sensors
+	3.	Transmit local sensor readings
+	4.	Buffer local and remote data in the buffered data structure
+	5.	Use the relay manager to control the humidifier and dehumidifier based on the
 	buffered data
 	*/
 
@@ -149,6 +149,9 @@ void RunAsController()
 		// add the sensor data to the buffer
 		bufferedData.Add(data);
 
+		Serial.print(F("Read my own data, the value was: "));
+		Serial.println(data.Humidity);
+
 		// make sure to transmit the raw, unbuffered data!
 		TransmitData(data);
 	}
@@ -156,12 +159,15 @@ void RunAsController()
 
 	// now, listen to see if we get any data that might be sent by another sensor array, 
 	// call this method as often as possible.
-	SensorTransmissionResult str = receiveProxy.Listen();
-	if (str.HasResult)
-	{
-		bufferedData.Add(str.Data);
-	}
-	Watchdog.reset();
+	//SensorTransmissionResult str = receiveProxy.Listen();
+	//if (str.HasResult)
+	//{
+	//	bufferedData.Add(str.Data);
+	//	Serial.print(F("Got a remote reading, the value was: "));
+	//	Serial.println(str.Data.Humidity);
+	//}
+	//receiveProxy.Reset();
+	//Watchdog.reset();
 
 	// display the buffered data
 	DisplayReadings(bufferedData);
@@ -218,5 +224,5 @@ void DisplayReadings(BME280Data sensorData)
 void TransmitData(BME280Data sensorData)
 {
 	TXResult result = transmissionProxy.Transmit(sensorData);
-	result.PrintDebug();
+	//result.PrintDebug();
 }
