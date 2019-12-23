@@ -32,7 +32,7 @@ using namespace RX;
 BME280Data data;
 BufferedBME280 bufferedData(20);
 ControllerConfiguration config;
-Devices mode = Devices::Controller;
+Devices mode = Devices::ClimateSensor;
 bool systemRunnable = true;
 bool isFirstLoop = true;
 
@@ -193,9 +193,7 @@ void RunAsSensor()
 		// display information from the sensors.
 		DisplayReadings(data);
 
-		// use the relay manager to adjust humidification based on sensor data.
-		relayManager.AdjustClimate(data);
-
+		// transmit sensor data to either a controller or a monitor (or both!)
 		TransmitData(data);
 
 		Watchdog.reset();
