@@ -139,9 +139,13 @@ void RunAsController()
 	buffered data
 	*/
 
+	bool dataReceived = false;
+
 	// Sensor proxies use a configurable timer, so call this method as often as possible.
 	if (bme280Proxy.ReadSensor(&data))
 	{
+		dataReceived = true;
+
 		// add the sensor data to the buffer
 		bufferedData.Add(data);
 
@@ -158,11 +162,19 @@ void RunAsController()
 	SensorTransmissionResult str = radioProxy.Listen();
 	if (str.HasResult)
 	{
+		dataReceived = true;
+
 		bufferedData.Add(str.Data);
 		Serial.print(F("Got a remote reading, the value was: "));
 		Serial.println(str.Data.Humidity);
 	}
 	Watchdog.reset();
+
+	if (dataReceived)
+	{
+		Serial.print(F("The rolling humidity average is: "));
+		Serial.println(bufferedData.Humidity);
+	}
 
 	// display the buffered data
 	DisplayReadings(bufferedData);
