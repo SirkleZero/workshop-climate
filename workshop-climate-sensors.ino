@@ -15,8 +15,7 @@ the root of the src folder.
 #include "Display\TFTDisplay.h"
 #include "Configuration\SDCardProxy.h"
 #include "Configuration\ControllerConfiguration.h"
-#include "TX\RFM69TXProxy.h"
-#include "RX\RFM69RXProxy.h"
+#include "RFM69\RFM69Proxy.h"
 #include "Relay\HumidityRelayManager.h"
 
 // set a boolean value that determines if we want serial debugging to work during the setup phase
@@ -25,9 +24,8 @@ bool enableSetupSerialWait = false;
 using namespace Configuration;
 using namespace Display;
 using namespace Sensors;
-using namespace TX;
+using namespace RFM69;
 using namespace Relay;
-using namespace RX;
 
 BME280Data data;
 BufferedBME280 bufferedData(40);
@@ -39,8 +37,7 @@ bool isFirstLoop = true;
 SDCardProxy sdCard;
 TFTDisplay display;
 BME280Proxy bme280Proxy;
-RFM69TXProxy transmissionProxy;
-RFM69RXProxy receiveProxy;
+RFM69Proxy radioProxy(1, 915.0, 8, 3, 4, 13);
 HumidityRelayManager relayManager;
 
 void setup()
@@ -64,8 +61,7 @@ void setup()
 		// initialize the radio first.
 		// no idea why this causes the sd card to fail initialization, but if we don't
 		// do one of these options, we can't read the sd card...... lame.
-		InitializationResult tr = transmissionProxy.Initialize();
-		InitializationResult rr = receiveProxy.Initialize();
+		InitializationResult rpr = radioProxy.Initialize();
 		InitializationResult sdr = sdCard.Initialize();
 		if (sdr.IsSuccessful)
 		{
@@ -75,7 +71,7 @@ void setup()
 
 		InitializationResult bmep = bme280Proxy.Initialize(TemperatureUnit::F, config.PollIntervalMS);
 
-		systemRunnable = bmep.IsSuccessful && tr.IsSuccessful && sdr.IsSuccessful;
+		systemRunnable = bmep.IsSuccessful && rpr.IsSuccessful && sdr.IsSuccessful;
 		systemRunnable = true;
 
 		// we're done loading things, display a waiting message
@@ -159,15 +155,14 @@ void RunAsController()
 
 	// now, listen to see if we get any data that might be sent by another sensor array, 
 	// call this method as often as possible.
-	//SensorTransmissionResult str = receiveProxy.Listen();
-	//if (str.HasResult)
-	//{
-	//	bufferedData.Add(str.Data);
-	//	Serial.print(F("Got a remote reading, the value was: "));
-	//	Serial.println(str.Data.Humidity);
-	//}
-	//receiveProxy.Reset();
-	//Watchdog.reset();
+	SensorTransmissionResult str = radioProxy.Listen();
+	if (str.HasResult)
+	{
+		bufferedData.Add(str.Data);
+		Serial.print(F("Got a remote reading, the value was: "));
+		Serial.println(str.Data.Humidity);
+	}
+	Watchdog.reset();
 
 	// display the buffered data
 	DisplayReadings(bufferedData);
@@ -223,6 +218,6 @@ void DisplayReadings(BME280Data sensorData)
 
 void TransmitData(BME280Data sensorData)
 {
-	TXResult result = transmissionProxy.Transmit(sensorData);
+	TXResult result = radioProxy.Transmit(sensorData);
 	//result.PrintDebug();
 }
