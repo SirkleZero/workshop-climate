@@ -12,21 +12,22 @@
 */
 #include "workshop-climate-lib.h"
 
-#include "RX\RFM69RXProxy.h"
-#include "RX\SensorTransmissionResult.h"
+#include "RFM69\RFM69Proxy.h"
+#include "RFM69\SensorTransmissionResult.h"
 #include "TX\AdafruitIOProxy.h"
 #include "TX\IoTUploadResult.h"
 #include "Display\TFTDisplay.h"
 #include "Configuration\SDCardProxy.h"
 #include "Configuration\Secrets.h"
 #include "Sensors\BufferedBME280.h"
+#include "Devices.h"
 
 // set a boolean value that determines if we want serial debugging to work during the setup phase
 bool enableSetupSerialWait = false;
 
 using namespace Configuration;
 using namespace Display;
-using namespace RX;
+using namespace RFM69;
 using namespace Sensors;
 using namespace TX;
 
@@ -42,7 +43,7 @@ bool isFirstLoop = true;
 // objects that handle functionality
 SDCardProxy sdCard;
 TFTDisplay display;
-RFM69RXProxy radio;
+RFM69Proxy radio(Devices::SystemMonitor, 915.0, 12, 13, 11, 15);
 AdafruitIOProxy httpClient;
 
 /*
@@ -144,11 +145,13 @@ void loop()
 		acknowledgements. it would be bad for the loop to have a delay call in it, messages will be lost.
 		DO NOT put a delay call in the loop function!
 		*/
-		result = radio.Listen();
+		result = radio.ListenForBME280();
 		Watchdog.reset();
 
 		if (result.HasResult)
 		{
+			result.PrintDebug();
+
 			sensorBuffer.Add(result.Data);
 			Watchdog.reset();
 
@@ -185,14 +188,16 @@ void loop()
 			catch anything. This "fixes" that issue. Yes, it's dumb and shared SPI sucks, at least
 			in this case.
 			*/
-			InitializationResult resetResult = radio.Reset();
-			if (!resetResult.IsSuccessful)
-			{
-				// something didn't work here, so let's...
-				Serial.println(resetResult.ErrorMessage);
-				sdCard.LogMessage(resetResult.ErrorMessage);
-				Watchdog.reset();
-			}
+			//radio.Initialize(); // THIS WORKS!!!
+			//radio.Reset();
+			//InitializationResult resetResult = radio.Reset();
+			//if (!resetResult.IsSuccessful)
+			//{
+			//	// something didn't work here, so let's...
+			//	Serial.println(resetResult.ErrorMessage);
+			//	sdCard.LogMessage(resetResult.ErrorMessage);
+			//	Watchdog.reset();
+			//}
 		}
 
 		// update the display
