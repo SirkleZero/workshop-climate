@@ -164,11 +164,11 @@ void RunAsController()
 	}
 	Watchdog.reset();
 
-	if (dataReceived)
+	/*if (dataReceived)
 	{
 		Serial.print(F("The rolling humidity average is: "));
 		Serial.println(bufferedData.Humidity);
-	}
+	}*/
 
 	// display the buffered data
 	DisplayReadings(bufferedData);
