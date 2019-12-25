@@ -181,7 +181,8 @@ void loop()
 
 			// reset the radio... no idea why this needs to happen, or if it even does. seems to help with random 
 			// crashing that i've not actually managed to debug yet... I suspect an SPI problem, but need to dig
-			// into this quite a bit more.
+			// into this quite a bit more. This call even seems to cause issues with the switching of screens via
+			// the touch screen? The radio issues need to be extensively tracked down and dealt with.
 			radio.Initialize();
 		}
 
