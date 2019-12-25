@@ -27,18 +27,20 @@ using namespace Sensors;
 using namespace RFM69;
 using namespace Relay;
 
-BME280Data data;
+// fields to update as things change
 BufferedBME280 bufferedData(40);
-ControllerConfiguration config;
-Devices mode = Devices::Controller;
-bool systemRunnable = true;
-bool isFirstLoop = true;
+Devices mode = Devices::HumidificationController;
+//Devices mode = Devices::RemoteSensor1;
+RFM69Proxy radioProxy(mode, 915.0, 8, 3, 4, 13);
 
+ControllerConfiguration config;
+BME280Data data;
 SDCardProxy sdCard;
 TFTDisplay display;
 BME280Proxy bme280Proxy;
-RFM69Proxy radioProxy(1, 915.0, 8, 3, 4, 13);
 HumidityRelayManager relayManager;
+bool systemRunnable = true;
+bool isFirstLoop = true;
 
 void setup()
 {
@@ -96,10 +98,10 @@ void loop()
 
 		switch (mode)
 		{
-			case Devices::Controller:
+			case Devices::HumidificationController:
 				RunAsController();
 				break;
-			case Devices::ClimateSensor:
+			case Devices::RemoteSensor1:
 				RunAsSensor();
 				break;
 			default:
@@ -159,7 +161,7 @@ void RunAsController()
 
 	// now, listen to see if we get any data that might be sent by another sensor array, 
 	// call this method as often as possible.
-	SensorTransmissionResult str = radioProxy.Listen();
+	SensorTransmissionResult str = radioProxy.ListenForBME280();
 	if (str.HasResult)
 	{
 		dataReceived = true;
@@ -206,6 +208,9 @@ void RunAsSensor()
 		// display information from the sensors.
 		DisplayReadings(data);
 
+		Serial.print(F("Read my own data, the value was: "));
+		Serial.println(data.Humidity);
+
 		// transmit sensor data to either a controller or a monitor (or both!)
 		TransmitData(data);
 
@@ -230,6 +235,26 @@ void DisplayReadings(BME280Data sensorData)
 
 void TransmitData(BME280Data sensorData)
 {
-	TXResult result = radioProxy.Transmit(sensorData);
-	//result.PrintDebug();
+
+	switch (mode)
+	{
+		case Devices::HumidificationController:
+		{
+			// the humidification controller only needs to send its sensor data to the system monitor
+			TXResult r = radioProxy.TransmitBME280(sensorData, Devices::SystemMonitor);
+			break;
+		}
+		case Devices::RemoteSensor1:
+		{
+			// remote sensors need to send their data to both the controller and the system monitor
+			TXResult r = radioProxy.TransmitBME280(sensorData, Devices::HumidificationController);
+			r.PrintDebug();
+			r = radioProxy.TransmitBME280(sensorData, Devices::SystemMonitor);
+			r.PrintDebug();
+
+			break;
+		}
+		default:
+			return;
+	}
 }
