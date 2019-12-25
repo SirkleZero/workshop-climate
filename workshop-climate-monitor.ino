@@ -150,8 +150,6 @@ void loop()
 
 		if (result.HasResult)
 		{
-			result.PrintDebug();
-
 			sensorBuffer.Add(result.Data);
 			Watchdog.reset();
 
@@ -180,6 +178,11 @@ void loop()
 					Watchdog.reset();
 				}
 			}
+
+			// reset the radio... no idea why this needs to happen, or if it even does. seems to help with random 
+			// crashing that i've not actually managed to debug yet... I suspect an SPI problem, but need to dig
+			// into this quite a bit more.
+			radio.Initialize();
 		}
 
 		// update the display
