@@ -180,24 +180,6 @@ void loop()
 					Watchdog.reset();
 				}
 			}
-
-			/*
-			calling Reset on the radio is a total hack. It re-initializes the RF69 radio because the
-			radio head library doesn't handle shared SPI bus very well (apparently). If we don't
-			reinitialize this, the loop will catch only the first transmission, and after that it won't
-			catch anything. This "fixes" that issue. Yes, it's dumb and shared SPI sucks, at least
-			in this case.
-			*/
-			//radio.Initialize(); // THIS WORKS!!!
-			//radio.Reset();
-			//InitializationResult resetResult = radio.Reset();
-			//if (!resetResult.IsSuccessful)
-			//{
-			//	// something didn't work here, so let's...
-			//	Serial.println(resetResult.ErrorMessage);
-			//	sdCard.LogMessage(resetResult.ErrorMessage);
-			//	Watchdog.reset();
-			//}
 		}
 
 		// update the display
