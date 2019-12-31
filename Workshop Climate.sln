@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29613.14
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "workshop-climate-monitor", "workshop-climate-monitor\workshop-climate-monitor.vcxproj", "{C5F80730-F44F-4478-BDAE-6634EFC2CA88}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "workshop-climate-sensors", "workshop-climate-sensors\workshop-climate-sensors.vcxproj", "{3619F95E-AC5C-4410-AC5B-1D6BB4CD61A7}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "workshop-climate-monitor", "workshop-climate-monitor\workshop-climate-monitor.vcxproj", "{C5F80730-F44F-4478-BDAE-6634EFC2CA88}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "workshop-climate-lib", "..\libraries\workshop-climate-lib\workshop-climate-lib.vcxitems", "{16367AF1-1BA7-4893-9E82-6F1102AF0697}"
 EndProject
@@ -20,14 +20,14 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Debug|x86.ActiveCfg = Debug|Win32
-		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Debug|x86.Build.0 = Debug|Win32
-		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Release|x86.ActiveCfg = Release|Win32
-		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Release|x86.Build.0 = Release|Win32
 		{3619F95E-AC5C-4410-AC5B-1D6BB4CD61A7}.Debug|x86.ActiveCfg = Debug|Win32
 		{3619F95E-AC5C-4410-AC5B-1D6BB4CD61A7}.Debug|x86.Build.0 = Debug|Win32
 		{3619F95E-AC5C-4410-AC5B-1D6BB4CD61A7}.Release|x86.ActiveCfg = Release|Win32
 		{3619F95E-AC5C-4410-AC5B-1D6BB4CD61A7}.Release|x86.Build.0 = Release|Win32
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Debug|x86.ActiveCfg = Debug|Win32
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Debug|x86.Build.0 = Debug|Win32
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Release|x86.ActiveCfg = Release|Win32
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
