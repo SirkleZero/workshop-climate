@@ -43,7 +43,7 @@ bool isFirstLoop = true;
 // objects that handle functionality
 SDCardProxy sdCard;
 TFTDisplay display;
-RFM69Proxy radio(Devices::SystemMonitor, 915.0, 12, 13, 11, 15);
+RFM69Proxy radio(Devices::SystemMonitor, 915.0, 17, 19, 18, 4);
 AdafruitIOProxy httpClient;
 
 /*
@@ -62,6 +62,11 @@ void setup()
 	{
 		while (!Serial);
 	}
+
+	// This is a fix to handle the fact that the Airlift FeatherWing pullup resistor doesn't seem to be 
+	// working properly. When the device boots, the Airlift CS pin (13) registers LOW rather than HIGH
+	// like it should. This resolves that issue via software.
+	pinMode(13, INPUT_PULLUP);
 
 	// cascading checks to make sure all our everything thats required is initialized properly.
 	if (display.Initialize().IsSuccessful)
